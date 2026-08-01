@@ -15,8 +15,12 @@ Open: http://localhost:8081
 - House price
 - Expected down payment
 - Loan interest rate (slider)
-- Yearly property tax/fee
-- Utilities (monthly)
+- Yearly property tax/fee (optional)
+- Utilities (monthly, optional)
+- Home insurance (monthly, optional)
+- Existing pantbrev available (optional)
+- Existing lagfart amount to include (optional)
+- One-time cost spread years (optional)
 
 The app also supports home insurance input and shows an expandable detailed breakdown,
 including Swedish one-time costs such as lagfart and pantbrev.
