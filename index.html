@@ -130,39 +130,49 @@
       <section class="grid" aria-label="Calculator inputs">
         <div>
           <label for="housePrice">House price (SEK)</label>
-          <input id="housePrice" type="number" min="0" step="10000" value="4500000" />
+          <input id="housePrice" type="number" min="0" step="10000" value="4500000" required />
         </div>
 
         <div>
           <label for="downPayment">Expected down payment (SEK)</label>
-          <input id="downPayment" type="number" min="0" step="10000" value="675000" />
+          <input id="downPayment" type="number" min="0" step="10000" value="675000" required />
           <div class="value" id="downPaymentPercent"></div>
         </div>
 
         <div>
           <label for="interestRate">Loan interest rate (%)</label>
-          <input id="interestRate" type="range" min="0" max="10" step="0.05" value="3.5" />
+          <input id="interestRate" type="range" min="0" max="10" step="0.05" value="3.5" required />
           <div class="value" id="interestRateValue"></div>
         </div>
 
         <div>
           <label for="yearlyTax">Yearly property tax / fee (SEK)</label>
-          <input id="yearlyTax" type="number" min="0" step="100" value="9525" />
+          <input id="yearlyTax" type="number" min="0" step="100" placeholder="Optional (default 0)" />
         </div>
 
         <div>
           <label for="utilities">Utilities (monthly, SEK)</label>
-          <input id="utilities" type="number" min="0" step="100" value="4000" />
+          <input id="utilities" type="number" min="0" step="100" placeholder="Optional (default 0)" />
         </div>
 
         <div>
           <label for="insurance">Home insurance (monthly, SEK)</label>
-          <input id="insurance" type="number" min="0" step="50" value="500" />
+          <input id="insurance" type="number" min="0" step="50" placeholder="Optional (default 0)" />
+        </div>
+
+        <div>
+          <label for="existingPantbrev">Existing pantbrev available (SEK)</label>
+          <input id="existingPantbrev" type="number" min="0" step="1000" placeholder="Optional (default 0)" />
+        </div>
+
+        <div>
+          <label for="existingLagfart">Existing lagfart amount to include (SEK)</label>
+          <input id="existingLagfart" type="number" min="0" step="1000" placeholder="Optional (default estimated lagfart)" />
         </div>
 
         <div>
           <label for="oneTimeYears">Spread one-time costs over (years)</label>
-          <input id="oneTimeYears" type="number" min="1" max="50" step="1" value="10" />
+          <input id="oneTimeYears" type="number" min="1" max="50" step="1" placeholder="Optional (default 10)" />
         </div>
       </section>
 
@@ -186,9 +196,8 @@
           registration fee (commonly <strong>375 SEK</strong> per application).
         </p>
         <p>
-          In this calculator, we assume no reusable pantbrev and estimate new pantbrev on the
-          full loan amount (<em>house price - down payment</em>). In reality, many houses already have
-          pantbrev that can be reused, which can lower this cost.
+          You can enter existing pantbrev to reduce the amount of new pantbrev needed. The calculator
+          only charges pantbrev on the remaining part of the loan that is not covered by existing pantbrev.
         </p>
 
         <h3>Other common Swedish costs included</h3>
@@ -222,6 +231,8 @@
         'yearlyTax',
         'utilities',
         'insurance',
+        'existingPantbrev',
+        'existingLagfart',
         'oneTimeYears',
       ];
 
@@ -234,6 +245,13 @@
       function toNonNegativeNumber(value) {
         const parsed = Number(value);
         return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+      }
+
+      function parseOptionalNonNegative(value) {
+        if (value === '') {
+          return null;
+        }
+        return toNonNegativeNumber(value);
       }
 
       function calculateAmortizationRate(loanToValueRatio) {
@@ -259,11 +277,13 @@
         }
 
         const interestRate = toNonNegativeNumber(elements.interestRate.value);
-        const yearlyTax = toNonNegativeNumber(elements.yearlyTax.value);
-        const utilities = toNonNegativeNumber(elements.utilities.value);
-        const insurance = toNonNegativeNumber(elements.insurance.value);
-        const oneTimeYears = Math.max(1, Math.round(toNonNegativeNumber(elements.oneTimeYears.value) || 1));
-        elements.oneTimeYears.value = String(oneTimeYears);
+        const yearlyTax = parseOptionalNonNegative(elements.yearlyTax.value) ?? 0;
+        const utilities = parseOptionalNonNegative(elements.utilities.value) ?? 0;
+        const insurance = parseOptionalNonNegative(elements.insurance.value) ?? 0;
+        const existingPantbrev = parseOptionalNonNegative(elements.existingPantbrev.value) ?? 0;
+        const existingLagfartInput = parseOptionalNonNegative(elements.existingLagfart.value);
+        const oneTimeYearsInput = parseOptionalNonNegative(elements.oneTimeYears.value);
+        const oneTimeYears = oneTimeYearsInput === null ? 10 : Math.max(1, Math.round(oneTimeYearsInput));
 
         const loanAmount = Math.max(housePrice - downPayment, 0);
         const downPercent = housePrice > 0 ? (downPayment / housePrice) * 100 : 0;
@@ -273,8 +293,10 @@
         const amortRate = calculateAmortizationRate(loanToValue);
         const monthlyAmortization = (loanAmount * amortRate) / 12;
 
-        const lagfart = housePrice * 0.015 + 825;
-        const pantbrev = loanAmount * 0.02 + (loanAmount > 0 ? 375 : 0);
+        const estimatedLagfart = housePrice * 0.015 + (housePrice > 0 ? 825 : 0);
+        const lagfart = existingLagfartInput ?? estimatedLagfart;
+        const pantbrevBase = Math.max(loanAmount - existingPantbrev, 0);
+        const pantbrev = pantbrevBase * 0.02 + (pantbrevBase > 0 ? 375 : 0);
         const oneTimeTotal = lagfart + pantbrev;
         const monthlyOneTimeShare = oneTimeTotal / (oneTimeYears * 12);
 
@@ -301,6 +323,9 @@
           line('Property tax/fee per month', currency.format(monthlyTax)),
           line('Utilities per month', currency.format(utilities)),
           line('Insurance per month', currency.format(insurance)),
+          line('Existing pantbrev used in estimate', currency.format(existingPantbrev)),
+          line('Pantbrev base requiring new deed', currency.format(pantbrevBase)),
+          line('Lagfart source', existingLagfartInput === null ? 'Estimated from purchase price' : 'User-provided'),
           line('One-time cost: lagfart', currency.format(lagfart)),
           line('One-time cost: pantbrev', currency.format(pantbrev)),
           line(`One-time costs spread over ${oneTimeYears} years`, currency.format(monthlyOneTimeShare)),
