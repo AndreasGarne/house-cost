@@ -8,7 +8,7 @@ Pure frontend house cost calculator for Sweden.
 docker compose up --build
 ```
 
-Open: http://localhost:8080
+Open: http://localhost:8081
 
 ## Inputs
 
