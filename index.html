@@ -118,6 +118,26 @@
         color: #4d6072;
         font-size: 0.9rem;
       }
+
+      .actions {
+        margin-top: 1rem;
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .btn-clear {
+        padding: 0.5rem 1.1rem;
+        border: 1px solid #bccad9;
+        border-radius: 6px;
+        background: #fff;
+        color: #41576c;
+        font-size: 0.9rem;
+        cursor: pointer;
+      }
+
+      .btn-clear:hover {
+        background: #f0f4f8;
+      }
     </style>
   </head>
   <body>
@@ -175,6 +195,10 @@
           <input id="oneTimeYears" type="number" min="1" max="50" step="1" placeholder="Optional (default 10)" />
         </div>
       </section>
+
+      <div class="actions">
+        <button class="btn-clear" id="clearBtn" type="button">Clear all inputs</button>
+      </div>
 
       <section class="result" aria-live="polite">
         <h2>Estimated monthly cost</h2>
@@ -235,6 +259,43 @@
         'existingLagfart',
         'oneTimeYears',
       ];
+
+      const defaults = {
+        housePrice: '4500000',
+        downPayment: '675000',
+        interestRate: '3.5',
+        yearlyTax: '',
+        utilities: '',
+        insurance: '',
+        existingPantbrev: '',
+        existingLagfart: '',
+        oneTimeYears: '',
+      };
+
+      const COOKIE_NAME = 'housecalc';
+      const COOKIE_MAX_AGE = 30 * 24 * 60 * 60; // 30 days in seconds
+
+      function saveToCookie() {
+        const data = Object.fromEntries(ids.map((id) => [id, elements[id].value]));
+        document.cookie = `${COOKIE_NAME}=${encodeURIComponent(JSON.stringify(data))}; max-age=${COOKIE_MAX_AGE}; path=/; SameSite=Lax`;
+      }
+
+      function loadFromCookie() {
+        const match = document.cookie.split('; ').find((row) => row.startsWith(`${COOKIE_NAME}=`));
+        if (!match) return;
+        try {
+          const data = JSON.parse(decodeURIComponent(match.split('=').slice(1).join('=')));
+          ids.forEach((id) => {
+            if (data[id] !== undefined) {
+              elements[id].value = data[id];
+            }
+          });
+        } catch (_) {}
+      }
+
+      function clearCookie() {
+        document.cookie = `${COOKIE_NAME}=; max-age=0; path=/; SameSite=Lax`;
+      }
 
       const elements = Object.fromEntries(ids.map((id) => [id, document.getElementById(id)]));
       const monthlyCost = document.getElementById('monthlyCost');
@@ -334,9 +395,21 @@
       }
 
       Object.values(elements).forEach((el) => {
-        el.addEventListener('input', update);
+        el.addEventListener('input', () => {
+          update();
+          saveToCookie();
+        });
       });
 
+      document.getElementById('clearBtn').addEventListener('click', () => {
+        ids.forEach((id) => {
+          elements[id].value = defaults[id];
+        });
+        clearCookie();
+        update();
+      });
+
+      loadFromCookie();
       update();
     </script>
   </body>
