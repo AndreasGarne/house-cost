@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sweden House Cost Calculator</title>
+    <style>
+      :root {
+        font-family: Arial, Helvetica, sans-serif;
+        color: #17212b;
+        background: #f5f7fa;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 2rem 1rem 3rem;
+      }
+
+      .container {
+        max-width: 860px;
+        margin: 0 auto;
+        background: #fff;
+        border: 1px solid #d9e0e8;
+        border-radius: 10px;
+        padding: 1.25rem;
+      }
+
+      h1, h2 {
+        margin-top: 0;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+      }
+
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.35rem;
+      }
+
+      input[type='number'],
+      input[type='range'] {
+        width: 100%;
+      }
+
+      input[type='number'] {
+        padding: 0.55rem;
+        border: 1px solid #bccad9;
+        border-radius: 6px;
+      }
+
+      .value {
+        margin-top: 0.3rem;
+        color: #41576c;
+        font-size: 0.92rem;
+      }
+
+      .result {
+        margin-top: 1.25rem;
+        padding: 1rem;
+        border-radius: 8px;
+        background: #eef6ff;
+        border: 1px solid #c5def8;
+      }
+
+      .monthly {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0.35rem 0 0;
+      }
+
+      details {
+        margin-top: 1rem;
+        border: 1px solid #d8e1eb;
+        border-radius: 8px;
+        padding: 0.75rem;
+      }
+
+      summary {
+        cursor: pointer;
+        font-weight: 700;
+      }
+
+      .breakdown {
+        margin-top: 0.75rem;
+        display: grid;
+        gap: 0.4rem;
+      }
+
+      .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .row strong {
+        white-space: nowrap;
+      }
+
+      .notes {
+        margin-top: 1rem;
+        color: #1f3243;
+        line-height: 1.45;
+      }
+
+      .notes h3 {
+        margin: 1rem 0 0.45rem;
+      }
+
+      .small {
+        color: #4d6072;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <h1>House Cost Calculator (Sweden)</h1>
+      <p class="small">
+        Estimate monthly ownership costs for a Swedish house. Adjust assumptions to fit your situation.
+      </p>
+
+      <section class="grid" aria-label="Calculator inputs">
+        <div>
+          <label for="housePrice">House price (SEK)</label>
+          <input id="housePrice" type="number" min="0" step="10000" value="4500000" />
+        </div>
+
+        <div>
+          <label for="downPayment">Expected down payment (SEK)</label>
+          <input id="downPayment" type="number" min="0" step="10000" value="675000" />
+          <div class="value" id="downPaymentPercent"></div>
+        </div>
+
+        <div>
+          <label for="interestRate">Loan interest rate (%)</label>
+          <input id="interestRate" type="range" min="0" max="10" step="0.05" value="3.5" />
+          <div class="value" id="interestRateValue"></div>
+        </div>
+
+        <div>
+          <label for="yearlyTax">Yearly property tax / fee (SEK)</label>
+          <input id="yearlyTax" type="number" min="0" step="100" value="9525" />
+        </div>
+
+        <div>
+          <label for="utilities">Utilities (monthly, SEK)</label>
+          <input id="utilities" type="number" min="0" step="100" value="4000" />
+        </div>
+
+        <div>
+          <label for="insurance">Home insurance (monthly, SEK)</label>
+          <input id="insurance" type="number" min="0" step="50" value="500" />
+        </div>
+
+        <div>
+          <label for="oneTimeYears">Spread one-time costs over (years)</label>
+          <input id="oneTimeYears" type="number" min="1" max="50" step="1" value="10" />
+        </div>
+      </section>
+
+      <section class="result" aria-live="polite">
+        <h2>Estimated monthly cost</h2>
+        <p class="monthly" id="monthlyCost">0 SEK / month</p>
+      </section>
+
+      <details>
+        <summary>Show detailed calculation</summary>
+        <div class="breakdown" id="breakdown"></div>
+      </details>
+
+      <section class="notes">
+        <h2>Swedish house-cost assumptions</h2>
+        <h3>What is pantbrev?</h3>
+        <p>
+          <strong>Pantbrev</strong> is a mortgage deed used as collateral for the bank loan. When existing
+          pantbrev in the property is not enough for your new mortgage, you need new pantbrev.
+          New pantbrev has a state stamp duty of <strong>2% of the new pantbrev amount</strong> plus a
+          registration fee (commonly <strong>375 SEK</strong> per application).
+        </p>
+        <p>
+          In this calculator, we assume no reusable pantbrev and estimate new pantbrev on the
+          full loan amount (<em>house price - down payment</em>). In reality, many houses already have
+          pantbrev that can be reused, which can lower this cost.
+        </p>
+
+        <h3>Other common Swedish costs included</h3>
+        <p>
+          <strong>Lagfart</strong> (title registration) is estimated as 1.5% of purchase price plus a fixed
+          administration fee (commonly 825 SEK). This is a one-time purchase cost.
+        </p>
+        <p>
+          Monthly estimate includes loan interest, amortization (simple model by loan-to-value),
+          yearly property fee/tax, utilities, home insurance, and a monthly share of one-time costs.
+        </p>
+      </section>
+    </main>
+
+    <script>
+      const currency = new Intl.NumberFormat('sv-SE', {
+        style: 'currency',
+        currency: 'SEK',
+        maximumFractionDigits: 0,
+      });
+
+      const percentFormatter = new Intl.NumberFormat('sv-SE', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+      const ids = [
+        'housePrice',
+        'downPayment',
+        'interestRate',
+        'yearlyTax',
+        'utilities',
+        'insurance',
+        'oneTimeYears',
+      ];
+
+      const elements = Object.fromEntries(ids.map((id) => [id, document.getElementById(id)]));
+      const monthlyCost = document.getElementById('monthlyCost');
+      const breakdown = document.getElementById('breakdown');
+      const downPaymentPercent = document.getElementById('downPaymentPercent');
+      const interestRateValue = document.getElementById('interestRateValue');
+
+      function toNonNegativeNumber(value) {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+      }
+
+      function calculateAmortizationRate(loanToValueRatio) {
+        if (loanToValueRatio > 0.7) {
+          return 0.02;
+        }
+        if (loanToValueRatio > 0.5) {
+          return 0.01;
+        }
+        return 0;
+      }
+
+      function line(label, value, isBold = false) {
+        return `<div class="row"><span>${label}</span><strong${isBold ? '' : ' style="font-weight:600;"'}>${value}</strong></div>`;
+      }
+
+      function update() {
+        const housePrice = toNonNegativeNumber(elements.housePrice.value);
+        const downPaymentRaw = toNonNegativeNumber(elements.downPayment.value);
+        const downPayment = Math.min(downPaymentRaw, housePrice);
+        if (downPaymentRaw !== downPayment) {
+          elements.downPayment.value = String(Math.round(downPayment));
+        }
+
+        const interestRate = toNonNegativeNumber(elements.interestRate.value);
+        const yearlyTax = toNonNegativeNumber(elements.yearlyTax.value);
+        const utilities = toNonNegativeNumber(elements.utilities.value);
+        const insurance = toNonNegativeNumber(elements.insurance.value);
+        const oneTimeYears = Math.max(1, Math.round(toNonNegativeNumber(elements.oneTimeYears.value) || 1));
+        elements.oneTimeYears.value = String(oneTimeYears);
+
+        const loanAmount = Math.max(housePrice - downPayment, 0);
+        const downPercent = housePrice > 0 ? (downPayment / housePrice) * 100 : 0;
+        const loanToValue = housePrice > 0 ? loanAmount / housePrice : 0;
+
+        const monthlyInterest = (loanAmount * (interestRate / 100)) / 12;
+        const amortRate = calculateAmortizationRate(loanToValue);
+        const monthlyAmortization = (loanAmount * amortRate) / 12;
+
+        const lagfart = housePrice * 0.015 + 825;
+        const pantbrev = loanAmount * 0.02 + (loanAmount > 0 ? 375 : 0);
+        const oneTimeTotal = lagfart + pantbrev;
+        const monthlyOneTimeShare = oneTimeTotal / (oneTimeYears * 12);
+
+        const monthlyTax = yearlyTax / 12;
+
+        const totalMonthly =
+          monthlyInterest +
+          monthlyAmortization +
+          monthlyTax +
+          utilities +
+          insurance +
+          monthlyOneTimeShare;
+
+        monthlyCost.textContent = `${currency.format(totalMonthly)} / month`;
+        downPaymentPercent.textContent = `Down payment share: ${percentFormatter.format(downPercent)}%`;
+        interestRateValue.textContent = `Selected rate: ${percentFormatter.format(interestRate)}%`;
+
+        breakdown.innerHTML = [
+          line('House price', currency.format(housePrice)),
+          line('Down payment', currency.format(downPayment)),
+          line('Loan amount', currency.format(loanAmount)),
+          line('Interest cost per month', currency.format(monthlyInterest)),
+          line(`Amortization per month (${percentFormatter.format(amortRate * 100)}% yearly)`, currency.format(monthlyAmortization)),
+          line('Property tax/fee per month', currency.format(monthlyTax)),
+          line('Utilities per month', currency.format(utilities)),
+          line('Insurance per month', currency.format(insurance)),
+          line('One-time cost: lagfart', currency.format(lagfart)),
+          line('One-time cost: pantbrev', currency.format(pantbrev)),
+          line(`One-time costs spread over ${oneTimeYears} years`, currency.format(monthlyOneTimeShare)),
+          line('Estimated monthly total', currency.format(totalMonthly), true),
+        ].join('');
+      }
+
+      Object.values(elements).forEach((el) => {
+        el.addEventListener('input', update);
+      });
+
+      update();
+    </script>
+  </body>
+</html>
