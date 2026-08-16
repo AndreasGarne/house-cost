@@ -207,9 +207,31 @@
         </div>
       </details>
 
+      <details>
+        <summary>Current monthly costs</summary>
+        <div class="breakdown">
+          <div>
+            <label for="currentMortgagePayment">Mortgage payments (interest plus deductible, monthly SEK)</label>
+            <input id="currentMortgagePayment" type="number" min="0" step="100" value="11066" />
+          </div>
+
+          <div>
+            <label for="currentUtilities">Utilities (monthly SEK)</label>
+            <input id="currentUtilities" type="number" min="0" step="100" value="2000" />
+          </div>
+
+          <div>
+            <label for="associationFee">Association fee (monthly SEK)</label>
+            <input id="associationFee" type="number" min="0" step="100" value="7400" />
+          </div>
+        </div>
+      </details>
+
       <section class="result" aria-live="polite">
         <h2>Estimated monthly cost</h2>
         <p class="monthly" id="monthlyCost">0 SEK / month</p>
+        <p class="value" id="currentMonthlyCost">Current monthly cost: 0 SEK</p>
+        <p class="value" id="monthlyDifference">Difference: 0 SEK</p>
       </section>
 
       <details>
@@ -270,10 +292,15 @@
         'brokerCost',
         'viewingCost',
         'currentSalePrice',
+        'currentMortgagePayment',
+        'currentUtilities',
+        'associationFee',
       ];
 
       const elements = Object.fromEntries(ids.map((id) => [id, document.getElementById(id)]));
       const monthlyCost = document.getElementById('monthlyCost');
+      const currentMonthlyCost = document.getElementById('currentMonthlyCost');
+      const monthlyDifference = document.getElementById('monthlyDifference');
       const breakdown = document.getElementById('breakdown');
       const downPaymentPercent = document.getElementById('downPaymentPercent');
       const interestRateValue = document.getElementById('interestRateValue');
@@ -325,6 +352,9 @@
         const brokerCost = parseOptionalNonNegative(elements.brokerCost.value) ?? 0;
         const viewingCost = parseOptionalNonNegative(elements.viewingCost.value) ?? 0;
         const currentSalePrice = parseOptionalNonNegative(elements.currentSalePrice.value) ?? 0;
+        const currentMortgagePayment = parseOptionalNonNegative(elements.currentMortgagePayment.value) ?? 0;
+        const currentUtilities = parseOptionalNonNegative(elements.currentUtilities.value) ?? 0;
+        const associationFee = parseOptionalNonNegative(elements.associationFee.value) ?? 0;
 
         const loanAmount = Math.max(housePrice - downPayment, 0);
         const downPercent = housePrice > 0 ? (downPayment / housePrice) * 100 : 0;
@@ -358,7 +388,12 @@
           utilities +
           insurance;
 
+        const currentCostMonthly = currentMortgagePayment + currentUtilities + associationFee;
+        const difference = totalMonthly - currentCostMonthly;
+
         monthlyCost.textContent = `${currency.format(totalMonthly)} / month`;
+        currentMonthlyCost.textContent = `Current monthly cost: ${currency.format(currentCostMonthly)}`;
+        monthlyDifference.textContent = `Difference: ${currency.format(difference)} ${difference >= 0 ? 'more' : 'less'}`;
         downPaymentPercent.textContent = `Down payment share: ${percentFormatter.format(downPercent)}%`;
         interestRateValue.textContent = `Selected rate: ${percentFormatter.format(interestRate)}%`;
         downPaymentAvailable.textContent = `(available from sale: ${currency.format(downPaymentFromSale)})`;
@@ -383,6 +418,9 @@
           line('Left after realtor fee', currency.format(currentSaleAfterBroker)),
           line('Left after lagfart', currency.format(currentSaleAfterLagfart)),
           line('Left after pantbrev', currency.format(currentSaleAfterPantbrev)),
+          line('Current mortgage payments', currency.format(currentMortgagePayment)),
+          line('Current utilities', currency.format(currentUtilities)),
+          line('Association fee', currency.format(associationFee)),
           line('Available for down payment after one-time costs', currency.format(downPaymentFromSale)),
           line(`One-time costs spread over ${oneTimeYears} years (informational)`, currency.format(monthlyOneTimeShare)),
           line('Note', 'Lagfart and pantbrev are one-time purchase costs and are excluded from the monthly total'),
