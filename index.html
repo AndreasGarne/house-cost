@@ -171,7 +171,7 @@
         </div>
 
         <div>
-          <label for="oneTimeYears">Spread one-time costs over (years)</label>
+          <label for="oneTimeYears">Show one-time costs spread over (years)</label>
           <input id="oneTimeYears" type="number" min="1" max="50" step="1" placeholder="Optional (default 10)" />
         </div>
       </section>
@@ -207,7 +207,8 @@
         </p>
         <p>
           Monthly estimate includes loan interest, amortization (simple model by loan-to-value),
-          yearly property fee/tax, utilities, home insurance, and a monthly share of one-time costs.
+          yearly property fee/tax, utilities, and home insurance. Lagfart and pantbrev are shown in the
+          breakdown as one-time purchase costs and are excluded from the monthly total.
         </p>
       </section>
     </main>
@@ -307,8 +308,7 @@
           monthlyAmortization +
           monthlyTax +
           utilities +
-          insurance +
-          monthlyOneTimeShare;
+          insurance;
 
         monthlyCost.textContent = `${currency.format(totalMonthly)} / month`;
         downPaymentPercent.textContent = `Down payment share: ${percentFormatter.format(downPercent)}%`;
@@ -328,8 +328,9 @@
           line('Lagfart source', existingLagfartInput === null ? 'Estimated from purchase price' : 'User-provided'),
           line('One-time cost: lagfart', currency.format(lagfart)),
           line('One-time cost: pantbrev', currency.format(pantbrev)),
-          line(`One-time costs spread over ${oneTimeYears} years`, currency.format(monthlyOneTimeShare)),
-          line('Estimated monthly total', currency.format(totalMonthly), true),
+          line(`One-time costs spread over ${oneTimeYears} years (informational)`, currency.format(monthlyOneTimeShare)),
+          line('Note', 'Lagfart and pantbrev are one-time purchase costs and are excluded from the monthly total'),
+          line('Estimated monthly total (excluding one-time costs)', currency.format(totalMonthly), true),
         ].join('');
       }
 
